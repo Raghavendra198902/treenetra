@@ -53,13 +53,17 @@ Follow REST principles:
 
 ### 3. HTTP Methods
 
-| Method | Purpose | Idempotent | Safe |
-|--------|---------|------------|------|
-| GET | Retrieve resources | Yes | Yes |
-| POST | Create resources | No | No |
-| PUT | Update/Replace resources | Yes | No |
-| PATCH | Partial update | No | No |
-| DELETE | Remove resources | Yes | No |
+| Method | Purpose | Idempotent | Safe | Cacheable | Request Body | Response Body | Success Code |
+|--------|---------|------------|------|-----------|--------------|---------------|-------------|
+| **GET** | Retrieve resources | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes | 200 OK |
+| **POST** | Create resources | ❌ No | ❌ No | ⚠️ Rarely | ✅ Yes | ✅ Yes | 201 Created |
+| **PUT** | Update/Replace | ✅ Yes | ❌ No | ❌ No | ✅ Yes | ✅ Yes | 200 OK |
+| **PATCH** | Partial update | ⚠️ No* | ❌ No | ❌ No | ✅ Yes | ✅ Yes | 200 OK |
+| **DELETE** | Remove resources | ✅ Yes | ❌ No | ❌ No | ⚠️ Optional | ⚠️ Optional | 204 No Content |
+| **HEAD** | Get headers only | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No | ❌ No | 200 OK |
+| **OPTIONS** | Describe options | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ✅ Yes | 200 OK |
+
+*Note: PATCH can be idempotent depending on implementation
 
 ### 4. Status Codes
 
@@ -542,6 +546,50 @@ GET /api/v1/search/trees?q=oak&location=new york
 ```
 
 ## Authentication & Authorization
+
+### Authentication Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant G as API Gateway
+    participant A as Auth Service
+    participant D as Database
+    participant R as Redis Cache
+    
+    Note over C,R: Login Flow
+    C->>G: POST /api/v1/auth/login<br/>{email, password}
+    G->>A: Forward credentials
+    A->>D: Query user by email
+    D-->>A: Return user data
+    A->>A: Verify password hash
+    alt Password Valid
+        A->>A: Generate JWT tokens
+        A->>R: Store refresh token
+        R-->>A: Confirm stored
+        A-->>G: Return tokens + user
+        G-->>C: 200 OK {accessToken, refreshToken, user}
+    else Password Invalid
+        A-->>G: Authentication failed
+        G-->>C: 401 Unauthorized
+    end
+    
+    Note over C,R: Authenticated Request Flow
+    C->>G: GET /api/v1/trees<br/>Authorization: Bearer {token}
+    G->>G: Validate JWT signature
+    alt Token Valid
+        G->>A: Verify token not blacklisted
+        A->>R: Check blacklist
+        R-->>A: Token valid
+        A-->>G: Token OK
+        G->>G: Extract user context
+        G->>G: Route to Tree Service
+        Note over G: Request processed...
+        G-->>C: 200 OK {data}
+    else Token Invalid/Expired
+        G-->>C: 401 Unauthorized
+    end
+```
 
 ### JWT Token Structure
 

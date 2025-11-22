@@ -55,80 +55,137 @@ This document describes the database schema for TreeNetra, including table struc
 
 ## Entity Relationship Diagram
 
+```mermaid
+erDiagram
+    USERS ||--o{ TREES : creates
+    USERS ||--o{ HEALTH_RECORDS : inspects
+    USERS ||--o{ TREE_IMAGES : uploads
+    USERS ||--o{ REFRESH_TOKENS : has
+    USERS ||--o{ AUDIT_LOGS : generates
+    
+    SPECIES ||--o{ TREES : categorizes
+    
+    TREES ||--o{ HEALTH_RECORDS : has
+    TREES ||--o{ TREE_IMAGES : contains
+    TREES ||--o{ TREE_TAGS : labeled_with
+    
+    USERS {
+        uuid id PK
+        varchar email UK
+        varchar password_hash
+        varchar name
+        varchar role
+        varchar avatar_url
+        boolean is_active
+        boolean email_verified
+        timestamp last_login_at
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+    
+    SPECIES {
+        uuid id PK
+        varchar common_name
+        varchar scientific_name UK
+        varchar family
+        text description
+        jsonb characteristics
+        text care_instructions
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    TREES {
+        uuid id PK
+        uuid species_id FK
+        uuid user_id FK
+        varchar common_name
+        decimal location_lat
+        decimal location_lng
+        text location_address
+        date planted_date
+        decimal height
+        decimal diameter
+        varchar health_status
+        text notes
+        jsonb metadata
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+    
+    HEALTH_RECORDS {
+        uuid id PK
+        uuid tree_id FK
+        uuid inspector_id FK
+        date date
+        varchar status
+        jsonb metrics
+        text notes
+        text recommendations
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    TREE_IMAGES {
+        uuid id PK
+        uuid tree_id FK
+        uuid uploaded_by FK
+        varchar url
+        varchar thumbnail_url
+        integer size
+        integer width
+        integer height
+        varchar format
+        boolean is_primary
+        text caption
+        timestamp created_at
+        timestamp deleted_at
+    }
+    
+    TREE_TAGS {
+        uuid id PK
+        uuid tree_id FK
+        varchar tag_name
+        timestamp created_at
+    }
+    
+    REFRESH_TOKENS {
+        uuid id PK
+        uuid user_id FK
+        varchar token UK
+        timestamp expires_at
+        timestamp created_at
+        timestamp revoked_at
+    }
+    
+    AUDIT_LOGS {
+        uuid id PK
+        uuid user_id FK
+        varchar action
+        varchar entity_type
+        uuid entity_id
+        jsonb changes
+        inet ip_address
+        text user_agent
+        timestamp created_at
+    }
 ```
-┌─────────────┐         ┌──────────────┐         ┌─────────────┐
-│    users    │         │    trees     │         │   species   │
-├─────────────┤         ├──────────────┤         ├─────────────┤
-│ id (PK)     │────┐    │ id (PK)      │    ┌───│ id (PK)     │
-│ email       │    │    │ species_id   │────┘   │ common_name │
-│ password    │    │    │ user_id (FK) │────┐   │ scientific  │
-│ name        │    │    │ location     │    │   │ description │
-│ role        │    │    │ planted_date │    │   └─────────────┘
-│ created_at  │    │    │ height       │    │
-│ updated_at  │    │    │ diameter     │    │
-└─────────────┘    │    │ health_status│    │
-                   │    │ deleted_at   │    │
-                   │    │ created_at   │    │
-                   │    │ updated_at   │    └──────────┐
-                   │    └──────────────┘               │
-                   │                                    │
-                   │    ┌──────────────────┐           │
-                   │    │ health_records   │           │
-                   │    ├──────────────────┤           │
-                   │    │ id (PK)          │           │
-                   │    │ tree_id (FK)     │───────────┤
-                   │    │ inspector_id (FK)│───────────┘
-                   │    │ date             │
-                   │    │ status           │
-                   │    │ metrics (JSONB)  │
-                   │    │ notes            │
-                   │    │ created_at       │
-                   │    └──────────────────┘
-                   │
-                   │    ┌──────────────────┐
-                   │    │   tree_images    │
-                   │    ├──────────────────┤
-                   │    │ id (PK)          │
-                   │    │ tree_id (FK)     │───────────┐
-                   │    │ url              │           │
-                   │    │ thumbnail_url    │           │
-                   │    │ uploaded_by (FK) │───────────┤
-                   │    │ created_at       │           │
-                   │    └──────────────────┘           │
-                   │                                    │
-                   │    ┌──────────────────┐           │
-                   └────│   tree_tags      │           │
-                        ├──────────────────┤           │
-                        │ id (PK)          │           │
-                        │ tree_id (FK)     │───────────┘
-                        │ tag_name         │
-                        │ created_at       │
-                        └──────────────────┘
 
-┌────────────────────┐
-│  refresh_tokens    │
-├────────────────────┤
-│ id (PK)            │
-│ user_id (FK)       │───┐
-│ token              │   │
-│ expires_at         │   │
-│ created_at         │   │
-└────────────────────┘   │
-                         │
-┌────────────────────┐   │
-│  audit_logs        │   │
-├────────────────────┤   │
-│ id (PK)            │   │
-│ user_id (FK)       │───┘
-│ action             │
-│ entity_type        │
-│ entity_id          │
-│ changes (JSONB)    │
-│ ip_address         │
-│ user_agent         │
-│ created_at         │
-└────────────────────┘
-```
+### Database Relationships Summary
+
+| Parent Table | Child Table | Relationship | Cascade Rule | Description |
+|--------------|-------------|--------------|--------------|-------------|
+| users | trees | One-to-Many | RESTRICT | User owns multiple trees |
+| users | health_records | One-to-Many | RESTRICT | User performs inspections |
+| users | tree_images | One-to-Many | RESTRICT | User uploads images |
+| users | refresh_tokens | One-to-Many | CASCADE | User has multiple tokens |
+| users | audit_logs | One-to-Many | SET NULL | User generates audit logs |
+| species | trees | One-to-Many | SET NULL | Species categorizes trees |
+| trees | health_records | One-to-Many | CASCADE | Tree has health history |
+| trees | tree_images | One-to-Many | CASCADE | Tree has multiple images |
+| trees | tree_tags | One-to-Many | CASCADE | Tree has multiple tags |
 
 ## Tables
 

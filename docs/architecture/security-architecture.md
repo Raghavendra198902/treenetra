@@ -30,23 +30,77 @@ This document outlines the security architecture for TreeNetra, covering authent
 
 Multiple layers of security controls:
 
+```mermaid
+graph TD
+    subgraph "Layer 1: User Authentication"
+        L1["🔐 JWT Tokens<br/>🔐 OAuth 2.0<br/>🔐 MFA (TOTP)<br/>🔐 Password Policy"]
+    end
+    
+    subgraph "Layer 2: Authorization"
+        L2["🛡️ RBAC<br/>🛡️ Permission Checks<br/>🛡️ Resource Ownership<br/>🛡️ API Scopes"]
+    end
+    
+    subgraph "Layer 3: Input Validation"
+        L3["✅ Schema Validation<br/>✅ Sanitization<br/>✅ Type Checking<br/>✅ Length Limits"]
+    end
+    
+    subgraph "Layer 4: Application Security"
+        L4["🔒 HTTPS Only<br/>🔒 CSRF Tokens<br/>🔒 XSS Prevention<br/>🔒 SQL Injection Guard"]
+    end
+    
+    subgraph "Layer 5: Network Security"
+        L5["🌐 VPC Isolation<br/>🌐 Security Groups<br/>🌐 WAF Rules<br/>🌐 DDoS Protection"]
+    end
+    
+    subgraph "Layer 6: Infrastructure"
+        L6["🏗️ Encrypted Storage<br/>🏗️ Secrets Manager<br/>🏗️ IAM Roles<br/>🏗️ Container Security"]
+    end
+    
+    subgraph "Layer 7: Data Protection"
+        L7["🔐 AES-256 Encryption<br/>🔐 TLS 1.3<br/>🔐 Key Rotation<br/>🔐 Data Masking"]
+    end
+    
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+    L4 --> L5
+    L5 --> L6
+    L6 --> L7
+    
+    style L1 fill:#ffebee
+    style L2 fill:#fce4ec
+    style L3 fill:#f3e5f5
+    style L4 fill:#ede7f6
+    style L5 fill:#e8eaf6
+    style L6 fill:#e3f2fd
+    style L7 fill:#e1f5fe
 ```
-┌──────────────────────────────────────────┐
-│     User Authentication (Layer 1)        │
-├──────────────────────────────────────────┤
-│     Authorization (Layer 2)              │
-├──────────────────────────────────────────┤
-│     Input Validation (Layer 3)           │
-├──────────────────────────────────────────┤
-│     Application Security (Layer 4)       │
-├──────────────────────────────────────────┤
-│     Network Security (Layer 5)           │
-├──────────────────────────────────────────┤
-│     Infrastructure Security (Layer 6)    │
-├──────────────────────────────────────────┤
-│     Data Encryption (Layer 7)            │
-└──────────────────────────────────────────┘
-```
+
+### Threat Model & Mitigation Strategy
+
+| Threat Category | Threat | Risk Level | Mitigation | Status |
+|----------------|--------|------------|------------|--------|
+| **Authentication** | Brute Force Attack | 🔴 High | Rate limiting, Account lockout, MFA | ✅ Implemented |
+| **Authentication** | Credential Stuffing | 🔴 High | MFA, CAPTCHA, Anomaly detection | ✅ Implemented |
+| **Authentication** | Session Hijacking | 🟡 Medium | Secure cookies, Token rotation | ✅ Implemented |
+| **Authorization** | Privilege Escalation | 🔴 High | RBAC, Permission checks, Audit logs | ✅ Implemented |
+| **Authorization** | Insecure Direct Object Reference | 🟡 Medium | Ownership validation, UUID usage | ✅ Implemented |
+| **Injection** | SQL Injection | 🔴 High | Parameterized queries, ORM, WAF | ✅ Implemented |
+| **Injection** | NoSQL Injection | 🟡 Medium | Input validation, Query sanitization | ✅ Implemented |
+| **Injection** | Command Injection | 🔴 High | Input validation, Avoid shell exec | ✅ Implemented |
+| **XSS** | Stored XSS | 🔴 High | Output encoding, CSP headers | ✅ Implemented |
+| **XSS** | Reflected XSS | 🟡 Medium | Input sanitization, CSP | ✅ Implemented |
+| **CSRF** | Cross-Site Request Forgery | 🟡 Medium | CSRF tokens, SameSite cookies | ✅ Implemented |
+| **Data** | Data Breach | 🔴 High | Encryption, Access controls, Monitoring | ✅ Implemented |
+| **Data** | Data Leakage | 🟡 Medium | Data masking, Audit logs, DLP | ✅ Implemented |
+| **DDoS** | Application Layer DDoS | 🔴 High | Rate limiting, WAF, Auto-scaling | ✅ Implemented |
+| **DDoS** | Network Layer DDoS | 🔴 High | AWS Shield, CloudFront | ✅ Implemented |
+| **API** | API Abuse | 🟡 Medium | Rate limiting, API keys, Monitoring | ✅ Implemented |
+| **API** | Broken Authentication | 🔴 High | JWT validation, Token expiry | ✅ Implemented |
+| **Supply Chain** | Vulnerable Dependencies | 🟡 Medium | npm audit, Snyk, Dependabot | ✅ Implemented |
+| **Supply Chain** | Malicious Packages | 🟡 Medium | Package verification, Lock files | ✅ Implemented |
+| **Infrastructure** | Container Escape | 🟡 Medium | Security context, Read-only FS | ✅ Implemented |
+| **Infrastructure** | Misconfigured S3 | 🔴 High | Bucket policies, Encryption | ✅ Implemented |
 
 ### Least Privilege Principle
 

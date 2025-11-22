@@ -46,59 +46,75 @@ TreeNetra follows a **microservices-oriented architecture** with the following c
 
 ### Architecture Diagram
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Client Layer                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  Web Client  │  │ Mobile App   │  │  Admin Panel │     │
-│  │   (React)    │  │(React Native)│  │   (React)    │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            │ HTTPS/REST
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     API Gateway Layer                        │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  API Gateway (Kong/AWS API Gateway)                    │ │
-│  │  - Rate Limiting  - Authentication  - Load Balancing   │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                ┌───────────┴───────────┐
-                ▼                       ▼
-┌───────────────────────────┐  ┌───────────────────────────┐
-│   Backend Services Layer  │  │   External Services       │
-│                           │  │                           │
-│  ┌─────────────────────┐ │  │  ┌─────────────────────┐ │
-│  │  Tree Service       │ │  │  │  Maps API           │ │
-│  │  (Node.js/Express)  │ │  │  │  (Google/Mapbox)    │ │
-│  └─────────────────────┘ │  │  └─────────────────────┘ │
-│                           │  │                           │
-│  ┌─────────────────────┐ │  │  ┌─────────────────────┐ │
-│  │  Analytics Service  │ │  │  │  Weather API        │ │
-│  │  (Node.js/Python)   │ │  │  │  (OpenWeather)      │ │
-│  └─────────────────────┘ │  │  └─────────────────────┘ │
-│                           │  │                           │
-│  ┌─────────────────────┐ │  │  ┌─────────────────────┐ │
-│  │  Auth Service       │ │  │  │  Notification       │ │
-│  │  (Node.js/JWT)      │ │  │  │  (SendGrid/Twilio)  │ │
-│  └─────────────────────┘ │  │  └─────────────────────┘ │
-└───────────────────────────┘  └───────────────────────────┘
-                │
-                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      Data Layer                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  PostgreSQL  │  │    Redis     │  │  MongoDB     │     │
-│  │  (Primary)   │  │   (Cache)    │  │   (Logs)     │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐                       │
-│  │  S3/Blob     │  │  Elasticsearch│                       │
-│  │  (Images)    │  │   (Search)    │                       │
-│  └──────────────┘  └──────────────┘                       │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        WEB["Web Client<br/>(React)"]
+        MOBILE["Mobile App<br/>(React Native)"]
+        ADMIN["Admin Panel<br/>(React)"]
+    end
+    
+    subgraph "API Gateway Layer"
+        GATEWAY["API Gateway<br/>Kong/AWS API Gateway<br/>━━━━━━━━━━━<br/>• Rate Limiting<br/>• Authentication<br/>• Load Balancing"]
+    end
+    
+    subgraph "Backend Services Layer"
+        TREE["Tree Service<br/>(Node.js/Express)"]
+        ANALYTICS["Analytics Service<br/>(Node.js/Python)"]
+        AUTH["Auth Service<br/>(Node.js/JWT)"]
+    end
+    
+    subgraph "External Services"
+        MAPS["Maps API<br/>(Google/Mapbox)"]
+        WEATHER["Weather API<br/>(OpenWeather)"]
+        NOTIFY["Notification<br/>(SendGrid/Twilio)"]
+    end
+    
+    subgraph "Data Layer"
+        POSTGRES[("PostgreSQL<br/>(Primary DB)")]
+        REDIS[("Redis<br/>(Cache)")]
+        MONGO[("MongoDB<br/>(Logs)")]
+        S3["S3/Blob<br/>(Images)"]
+        ELASTIC["Elasticsearch<br/>(Search)"]
+    end
+    
+    WEB -->|HTTPS/REST| GATEWAY
+    MOBILE -->|HTTPS/REST| GATEWAY
+    ADMIN -->|HTTPS/REST| GATEWAY
+    
+    GATEWAY --> TREE
+    GATEWAY --> ANALYTICS
+    GATEWAY --> AUTH
+    
+    TREE --> POSTGRES
+    TREE --> REDIS
+    TREE --> S3
+    TREE --> MAPS
+    
+    ANALYTICS --> POSTGRES
+    ANALYTICS --> REDIS
+    ANALYTICS --> ELASTIC
+    
+    AUTH --> POSTGRES
+    AUTH --> REDIS
+    
+    TREE --> NOTIFY
+    ANALYTICS --> WEATHER
+    
+    TREE -.-> MONGO
+    ANALYTICS -.-> MONGO
+    AUTH -.-> MONGO
+    
+    style WEB fill:#e1f5ff
+    style MOBILE fill:#e1f5ff
+    style ADMIN fill:#e1f5ff
+    style GATEWAY fill:#fff9c4
+    style TREE fill:#c8e6c9
+    style ANALYTICS fill:#c8e6c9
+    style AUTH fill:#c8e6c9
+    style POSTGRES fill:#ffccbc
+    style REDIS fill:#ffccbc
+    style MONGO fill:#ffccbc
 ```
 
 ## High-Level Design
@@ -293,20 +309,47 @@ Monitoring:
 
 ### User Request Flow
 
-```
-1. Client sends request to API Gateway
-   ↓
-2. API Gateway validates authentication
-   ↓
-3. Request routed to appropriate service
-   ↓
-4. Service processes business logic
-   ↓
-5. Service queries database/cache
-   ↓
-6. Service returns response
-   ↓
-7. API Gateway returns to client
+```mermaid
+flowchart TD
+    A[Client sends request] --> B{API Gateway<br/>Authentication}
+    B -->|Valid Token| C[Route to Service]
+    B -->|Invalid Token| Z1[Return 401 Unauthorized]
+    
+    C --> D{Service Type}
+    D -->|Tree Service| E1[Process Tree Logic]
+    D -->|Analytics Service| E2[Process Analytics Logic]
+    D -->|Auth Service| E3[Process Auth Logic]
+    
+    E1 --> F1{Check Cache}
+    E2 --> F2{Check Cache}
+    E3 --> F3{Check Cache}
+    
+    F1 -->|Cache Hit| G1[Return Cached Data]
+    F1 -->|Cache Miss| H1[Query Database]
+    F2 -->|Cache Hit| G2[Return Cached Data]
+    F2 -->|Cache Miss| H2[Query Database]
+    F3 -->|Cache Hit| G3[Return Cached Data]
+    F3 -->|Cache Miss| H3[Query Database]
+    
+    H1 --> I1[Update Cache]
+    H2 --> I2[Update Cache]
+    H3 --> I3[Update Cache]
+    
+    I1 --> J[Format Response]
+    I2 --> J
+    I3 --> J
+    G1 --> J
+    G2 --> J
+    G3 --> J
+    
+    J --> K[Log Request]
+    K --> L[Return to Client]
+    Z1 --> L
+    
+    style A fill:#e1f5ff
+    style B fill:#fff9c4
+    style L fill:#c8e6c9
+    style Z1 fill:#ffcdd2
 ```
 
 ### Data Write Flow
