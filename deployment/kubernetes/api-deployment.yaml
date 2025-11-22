@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: treenetra-api
+  labels:
+    app: treenetra
+    component: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: treenetra
+      component: api
+  template:
+    metadata:
+      labels:
+        app: treenetra
+        component: api
+    spec:
+      containers:
+      - name: api
+        image: treenetra/api:latest
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: treenetra-secrets
+              key: mongodb-uri
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: treenetra-secrets
+              key: jwt-secret
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: treenetra-secrets
+              key: redis-password
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: treenetra-uploads-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: treenetra-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: treenetra-api-service
+spec:
+  selector:
+    app: treenetra
+    component: api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
