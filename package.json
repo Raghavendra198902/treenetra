@@ -1,0 +1,53 @@
+{
+  "name": "treenetra",
+  "version": "1.0.0",
+  "description": "Modern platform for tree management and monitoring",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "echo 'Building backend...'",
+    "build:frontend": "echo 'Building frontend...'",
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=tests/unit",
+    "test:integration": "jest --testPathPattern=tests/integration",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "deploy:staging": "node scripts/deploy.js staging",
+    "deploy:production": "node scripts/deploy.js production"
+  },
+  "keywords": [
+    "tree-management",
+    "environmental-monitoring",
+    "inventory-management",
+    "sustainability",
+    "green-tech"
+  ],
+  "author": "Raghavendra <raghavendra198902@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Raghavendra198902/treenetra.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Raghavendra198902/treenetra/issues"
+  },
+  "homepage": "https://github.com/Raghavendra198902/treenetra#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "redis": "^4.6.10"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.52.0",
+    "nodemon": "^3.0.1"
+  }
+}
