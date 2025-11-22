@@ -56,8 +56,12 @@ treenetra/
 
 ## 📖 Documentation
 
+Comprehensive documentation is available in our [Wiki](https://github.com/Raghavendra198902/treenetra/wiki):
+
+- [Getting Started](https://github.com/Raghavendra198902/treenetra/wiki/Getting-Started) - Installation and setup guide
+- [API Documentation](https://github.com/Raghavendra198902/treenetra/wiki/API-Documentation) - Complete API reference
+- [Contributing Guide](https://github.com/Raghavendra198902/treenetra/wiki/Contributing) - How to contribute
 - [Installation Guide](docs/installation.md)
-- [API Reference](docs/api.md)
 - [User Guide](docs/user-guide.md)
 - [Development Guide](docs/development.md)
 
@@ -89,11 +93,25 @@ npm run deploy:production
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+
+### How to Contribute
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔒 Security
+
+For security concerns, please review our [Security Policy](SECURITY.md).
 
 ## 👥 Team
 
@@ -102,8 +120,21 @@ Created and maintained by Raghavendra.
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/Raghavendra198902/treenetra/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Raghavendra198902/treenetra/discussions)
+- **Wiki**: [Project Wiki](https://github.com/Raghavendra198902/treenetra/wiki)
 - **Email**: raghavendra198902@gmail.com
-- **Documentation**: [docs/](docs/)
+
+## 🌟 Acknowledgments
+
+- Thanks to all contributors who have helped shape TreeNetra
+- Built with modern open-source technologies
+
+## 📊 Project Status
+
+![GitHub issues](https://img.shields.io/github/issues/Raghavendra198902/treenetra)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/Raghavendra198902/treenetra)
+![GitHub license](https://img.shields.io/github/license/Raghavendra198902/treenetra)
+![GitHub stars](https://img.shields.io/github/stars/Raghavendra198902/treenetra)
 
 ---
 
